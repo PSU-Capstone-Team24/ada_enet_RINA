@@ -24,7 +24,8 @@ package Net.Protos is
    ETHERTYPE_ARP  : constant Uint16 := 16#0806#;
    ETHERTYPE_IP   : constant Uint16 := 16#0800#;
    ETHERTYPE_IPv6 : constant Uint16 := 16#86DD#;
-
+   ETHERTYPE_RINA : constant Uint16 := 16#D1F0#;
+   
    type Receive_Handler is access procedure (Ifnet  : in out Net.Interfaces.Ifnet_Type'Class;
                          Packet : in out Net.Buffers.Buffer_Type);
 
