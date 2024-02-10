@@ -308,9 +308,10 @@ package body Net.Protos.Arp is
       Req.Arp.Ea_Hdr.Ar_Pln := Source_Ip'Length;
       Req.Arp.Ea_Hdr.Ar_Op  := Net.Headers.To_Network (ARPOP_REQUEST);
       Req.Arp.Arp_Sha := Mac;
-      Req.Arp.Arp_Spa := Source_Ip;
+      --  MT: TODO: Integrate these!
+      Req.Arp.Arp_Spa := "SOURCE_APPLICATION"; --  Source_Ip;
       Req.Arp.Arp_Tha := (others => 0);
-      Req.Arp.Arp_Tpa := Target_Ip;
+      Req.Arp.Arp_Tpa := "DESTINATION_APPLICATION"; --  Target_Ip;
       Buf.Set_Length ((Req.all'Size) / 8);
       Ifnet.Send (Buf);
    end Request;
@@ -322,31 +323,31 @@ package body Net.Protos.Arp is
       --  Check for valid hardware length, protocol length, hardware type and protocol type.
       if Req.Arp.Ea_Hdr.Ar_Hln /= Ifnet.Mac'Length or Req.Arp.Ea_Hdr.Ar_Pln /= Ifnet.Ip'Length
         or Req.Arp.Ea_Hdr.Ar_Hdr /= Net.Headers.To_Network (ARPOP_REQUEST)
-        or Req.Arp.Ea_Hdr.Ar_Pro /= Net.Headers.To_Network (ETHERTYPE_IP)
+        or Req.Arp.Ea_Hdr.Ar_Pro /= Net.Headers.To_Network (ETHERTYPE_RINA) --  (ETHERTYPE_IP)
       then
          Ifnet.Rx_Stats.Ignored := Ifnet.Rx_Stats.Ignored + 1;
          return;
       end if;
 
       case Net.Headers.To_Host (Req.Arp.Ea_Hdr.Ar_Op) is
-         when ARPOP_REQUEST =>
+         when ARPOP_REQUEST => null;
             --  This ARP request is for our IP address.
             --  Send the corresponding ARP reply with our Ethernet address.
-            if Req.Arp.Arp_Tpa = Ifnet.Ip then
-               Req.Ethernet.Ether_Dhost := Req.Arp.Arp_Sha;
-               Req.Ethernet.Ether_Shost := Ifnet.Mac;
-               Req.Arp.Ea_Hdr.Ar_Op  := Net.Headers.To_Network (ARPOP_REPLY);
-               Req.Arp.Arp_Tpa := Req.Arp.Arp_Spa;
-               Req.Arp.Arp_Tha := Req.Arp.Arp_Sha;
-               Req.Arp.Arp_Sha := Ifnet.Mac;
-               Req.Arp.Arp_Spa := Ifnet.Ip;
-               Ifnet.Send (Packet);
-            end if;
+            --if Req.Arp.Arp_Tpa = Ifnet.Ip then
+            --   Req.Ethernet.Ether_Dhost := Req.Arp.Arp_Sha;
+            --   Req.Ethernet.Ether_Shost := Ifnet.Mac;
+            --   Req.Arp.Ea_Hdr.Ar_Op  := Net.Headers.To_Network (ARPOP_REPLY);
+            --   Req.Arp.Arp_Tpa := Req.Arp.Arp_Spa;
+            --   Req.Arp.Arp_Tha := Req.Arp.Arp_Sha;
+            --   Req.Arp.Arp_Sha := Ifnet.Mac;
+            --   Req.Arp.Arp_Spa := Ifnet.Ip;
+            --   Ifnet.Send (Packet);
+            --end if;
 
-         when ARPOP_REPLY =>
-            if Req.Arp.Arp_Tpa = Ifnet.Ip and Req.Arp.Arp_Tha = Ifnet.Mac then
-               Update (Ifnet, Req.Arp.Arp_Spa, Req.Arp.Arp_Sha);
-            end if;
+         when ARPOP_REPLY => null;
+            --if Req.Arp.Arp_Tpa = Ifnet.Ip and Req.Arp.Arp_Tha = Ifnet.Mac then
+            --   Update (Ifnet, Req.Arp.Arp_Spa, Req.Arp.Arp_Sha);
+            --end if;
 
          when others =>
             Ifnet.Rx_Stats.Ignored := Ifnet.Rx_Stats.Ignored + 1;
